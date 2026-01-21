@@ -1,0 +1,12 @@
+Flask==3.0.0
+Flask-CORS==4.0.0
+pytesseract==0.3.10
+Pillow==10.1.0
+python-dotenv==1.0.0
+
+# Hugging Face AI Models
+transformers==4.36.0
+torch==2.1.2
+sentencepiece==0.1.99
+protobuf==4.25.1
+accelerate==0.25.0

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Medical Report Simplifier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-top: 15px;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            font-size: 16px;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 150px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .upload-area {
+            border: 3px dashed #e9ecef;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-name {
+            margin-top: 15px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '🤖 AI-Powered';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ai-processing {
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .results-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+        }
+
+        .ai-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85em;
+        }
+
+        .results-header h2 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .results-body {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .summary-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .summary-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .test-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-low {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-normal {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .test-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 0.95em;
+        }
+
+        .test-detail {
+            color: #666;
+        }
+
+        .test-detail strong {
+            color: #333;
+        }
+
+        .explanations {
+            margin-top: 25px;
+        }
+
+        .explanations h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .explanation-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #764ba2;
+            position: relative;
+        }
+
+        .ai-generated {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 0.75em;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .disclaimer {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 25px;
+            font-size: 0.9em;
+            color: #856404;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
+
+            .test-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 AI Medical Report Simplifier</h1>
+            <div class="ai-badge">🤖 Powered by Hugging Face AI Models</div>
+            <p>Intelligent medical report analysis using state-of-the-art NLP</p>
+        </div>
+
+        <div class="main-card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('text')">📄 Text Input</button>
+                <button class="tab" onclick="switchTab('image')">📷 Image Upload</button>
+            </div>
+
+            <!-- Text Input Tab -->
+            <div id="text-tab" class="tab-content active">
+                <div class="form-group">
+                    <label for="text-input">Enter Medical Report Text</label>
+                    <textarea 
+                        id="text-input" 
+                        placeholder="Example: CBC: Hemoglobin 10.2 g/dL (Low), WBC 11,200 /uL (High)&#10;&#10;The AI will intelligently extract medical entities and provide explanations."
+                    ></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="analyzeText()">
+                    Analyze with AI
+                </button>
+            </div>
+
+            <!-- Image Upload Tab -->
+            <div id="image-tab" class="tab-content">
+                <div class="form-group">
+                    <label>Upload Medical Report Image</label>
+                    <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+                        <div class="upload-icon">📤</div>
+                        <p>Click to upload or drag and drop</p>
+                        <p style="font-size: 0.9em; color: #6c757d; margin-top: 10px;">PNG, JPG up to 10MB • AI-powered OCR</p>
+                        <div class="file-name" id="file-name"></div>
+                    </div>
+                    <input type="file" id="file-input" class="file-input" accept="image/*" onchange="handleFileSelect(event)">
+                </div>
+                <button class="btn btn-primary" onclick="analyzeImage()" id="analyze-image-btn" disabled>
+                    Analyze with AI
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>AI is processing your medical report...</p>
+                <p class="ai-processing">🧠 Running advanced NLP models</p>
+            </div>
+
+            <!-- Error Message -->
+            <div class="error" id="error"></div>
+
+            <!-- Results -->
+            <div class="results" id="results">
+                <div class="results-header">
+                    <div class="ai-indicator">🤖 AI Analysis</div>
+                    <h2>✅ Intelligent Analysis Results</h2>
+                    <p id="ocr-confidence"></p>
+                </div>
+                <div class="results-body">
+                    <div class="summary-box">
+                        <h3>AI-Generated Summary <span class="confidence-badge" id="confidence-badge"></span></h3>
+                        <p id="summary-text"></p>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom: 15px;">Test Results</h3>
+                        <div id="tests-container"></div>
+                    </div>
+
+                    <div class="explanations">
+                        <h3>AI-Powered Patient Explanations</h3>
+                        <div id="explanations-container"></div>
+                    </div>
+
+                    <div class="disclaimer">
+                        <strong>⚠️ Disclaimer:</strong> This AI tool provides information only and is not a substitute for professional medical advice. 
+                        The analysis is generated by machine learning models and should be verified by healthcare professionals.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+
+            hideResults();
+            hideError();
+        }
+
+        function handleFileSelect(event) {
+            selectedFile = event.target.files[0];
+            if (selectedFile) {
+                document.getElementById('file-name').textContent = '✓ ' + selectedFile.name;
+                document.getElementById('analyze-image-btn').disabled = false;
+            }
+        }
+
+        const uploadArea = document.getElementById('upload-area');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                selectedFile = files[0];
+                document.getElementById('file-name').textContent = '✓ ' + selectedFile.name;
+                document.getElementById('analyze-image-btn').disabled = false;
+            }
+        });
+
+        async function analyzeText() {
+            const text = document.getElementById('text-input').value.trim();
+            
+            if (!text) {
+                showError('Please enter medical report text');
+                return;
+            }
+
+            showLoading();
+            hideError();
+            hideResults();
+
+            try {
+                const response = await fetch('/api/analyze/text', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    showError(data.message || 'An error occurred while processing your request');
+                }
+            } catch (error) {
+                hideLoading();
+                showError('Failed to connect to the server: ' + error.message);
+            }
+        }
+
+        async function analyzeImage() {
+            if (!selectedFile) {
+                showError('Please select an image file');
+                return;
+            }
+
+            showLoading();
+            hideError();
+            hideResults();
+
+            try {
+                const formData = new FormData();
+                formData.append('image', selectedFile);
+
+                const response = await fetch('/api/analyze/image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    showError(data.message || 'An error occurred while processing your image');
+                }
+            } catch (error) {
+                hideLoading();
+                showError('Failed to connect to the server: ' + error.message);
+            }
+        }
+
+        function displayResults(data) {
+            // Display confidence
+            if (data.confidence) {
+                document.getElementById('confidence-badge').textContent = 
+                    `Confidence: ${(data.confidence * 100).toFixed(0)}%`;
+            }
+
+            // Display OCR confidence if available
+            if (data.ocr_confidence) {
+                document.getElementById('ocr-confidence').textContent = 
+                    `OCR Confidence: ${(data.ocr_confidence * 100).toFixed(0)}% | AI-Powered: ${data.ai_powered ? 'Yes' : 'No'}`;
+            } else {
+                document.getElementById('ocr-confidence').textContent = 
+                    data.ai_powered ? '🤖 Analyzed using Hugging Face AI Models' : '';
+            }
+
+            // Display summary
+            document.getElementById('summary-text').textContent = data.summary;
+
+            // Display tests
+            const testsContainer = document.getElementById('tests-container');
+            testsContainer.innerHTML = '';
+
+            data.tests.forEach(test => {
+                const testCard = document.createElement('div');
+                testCard.className = 'test-card';
+                testCard.innerHTML = `
+                    <div class="test-header">
+                        <div class="test-name">${test.name}</div>
+                        <div class="status-badge status-${test.status}">${test.status}</div>
+                    </div>
+                    <div class="test-details">
+                        <div class="test-detail">
+                            <strong>Value:</strong> ${test.value} ${test.unit}
+                        </div>
+                        <div class="test-detail">
+                            <strong>Normal Range:</strong> ${test.ref_range.low} - ${test.ref_range.high} ${test.unit}
+                        </div>
+                    </div>
+                `;
+                testsContainer.appendChild(testCard);
+            });
+
+            // Display explanations
+            const explanationsContainer = document.getElementById('explanations-container');
+            explanationsContainer.innerHTML = '';
+
+            if (data.explanations) {
+                data.explanations.forEach(explanation => {
+                    const explanationItem = document.createElement('div');
+                    explanationItem.className = 'explanation-item';
+                    explanationItem.innerHTML = `
+                        <span class="ai-generated">AI Generated</span>
+                        ${explanation}
+                    `;
+                    explanationsContainer.appendChild(explanationItem);
+                });
+            }
+
+            document.getElementById('results').classList.add('active');
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.classList.add('active');
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.remove('active');
+        }
+
+        function hideResults() {
+            document.getElementById('results').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

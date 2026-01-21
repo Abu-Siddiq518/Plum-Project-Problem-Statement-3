@@ -41,11 +41,11 @@ Make sure the following are installed on your system:
 ```python
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 ```
-###🔹 Step 2: Clone the Repository
+🔹 Step 2: Clone the Repository
 git clone https://github.com/Abu-Siddiq518/Plum-Project-Problem-Statement-3.git
 cd medical-report-simplifier
 
-###🔹 Step 3: Create and Activate Virtual Environment
+🔹 Step 3: Create and Activate Virtual Environment
 # Create virtual environment
 python -m venv venv
 
@@ -57,7 +57,7 @@ venv\Scripts\activate
 Linux / macOS
 source venv/bin/activate
 
-###🔹 Step 4: Install Dependencies
+🔹 Step 4: Install Dependencies
 pip install -r requirements.txt
 
 ▶️ Run the Application
